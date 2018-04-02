@@ -12,6 +12,7 @@ import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.ParcelUuid;
 import android.support.annotation.RequiresApi;
@@ -19,6 +20,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
@@ -34,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     int ms1;
     int ms2;
     int ms3;
+    TextView tv;
     MqttClient sampleClient;
     MqttMessage Mmessage1;
     MqttMessage Mmessage2;
@@ -50,27 +55,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},200);
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION},200);
-        initialize();
-        mqtt_connect();
+       // initialize();
+       // mqtt_connect();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onResume(){
         super.onResume();
-        startscand();
-        try {
-            Thread.sleep(50000);
-            msg_pub();
-        } catch (MqttException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+       // startscand();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -136,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
             Log.i("Scan result",String.valueOf(rssi));
            // Log.i("record",scan_rec.toString());
             sc1=scan_rec.getManufacturerSpecificData(0);
-
+            tv=findViewById(R.id.tv);
             for (int i=0;i<sc1.length; i++){
                 Log.i("Data-----:", String.valueOf(sc1[i]));
                 lr[i]=sc1[i];
@@ -144,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
            try {
                 //  Thread.sleep(10000);
                if(String.valueOf(ms1)!=String.valueOf(lr[0]) || String.valueOf(ms1)!=String.valueOf(lr[0]) || String.valueOf(ms1)!=String.valueOf(lr[0]))
-               {msg_pub();}
+               {msg_pub();tv.setText(String.valueOf(lr[0]));}
             } catch (MqttException e) {
                 e.printStackTrace();
             }
@@ -206,7 +204,16 @@ public class MainActivity extends AppCompatActivity {
       Mmessage3.setPayload( String.valueOf(lr[2]).getBytes());
         sampleClient.publish(topic, Mmessage3);
         Log.i("message sending ",String.valueOf(Mmessage3));
+    }
 
-
+    public void stratService(View view){
+        Intent intent=new Intent(this,mqttservice.class);
+        startService(intent);
+        Toast.makeText(this, "Service started", Toast.LENGTH_SHORT).show();
+    }
+    public void stopService(View view){
+        Intent intent=new Intent(this,mqttservice.class);
+        stopService(intent);
+        Toast.makeText(this, "Service Destroyed", Toast.LENGTH_SHORT).show();
     }
 }
